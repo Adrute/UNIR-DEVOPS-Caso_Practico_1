@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+    stages {
+        stage('SetUp'){
+            steps{
+                // Setup Virtualenv for testing
+                echo '## Creamos el entorno virtual'
+                sh "python3.8 -m venv envStageVM"
+                
+                echo '## Arrancamos el entorno virtual e instalamos las dependencias'
+                
+                sh """
+                . envStageVM/bin/activate
+                pip install requests
+                """
+            }
+        }
+        stage('Build') {
+            steps {
+                sh "bash events/StageBuild/build.sh" 
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh "bash events/StageDeploy/deploy.sh"
+            }
+        }
+        stage('Integration Test after deploy') {
+            steps {
+                sh "bash events/StageIntegration/integration-test.sh"
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Clean env: delete dir'
+            cleanWs()
+        }
+    }
+}

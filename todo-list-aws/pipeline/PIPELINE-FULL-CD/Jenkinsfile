@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+    stages {
+        stage ('PIPELINE-FULL-STAGING') {
+            steps {
+                build job: 'PIPELINE-FULL-STAGING'
+            }
+        }
+        stage ('Merge Master') {
+            steps {
+                sh "bash events/PipelineCD/merge-master.sh"
+            }
+        }
+        stage ('PIPELINE-FULL-PRODUCTION') {
+            steps {
+                build job: 'PIPELINE-FULL-PRODUCTION'
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Clean env: delete dir'
+            cleanWs()
+        }
+    }
+}
